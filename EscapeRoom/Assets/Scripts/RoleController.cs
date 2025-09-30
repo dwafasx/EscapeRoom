@@ -14,7 +14,7 @@ public class BasicMovement : MonoBehaviour
     float verticalMouseSum = 0;//鼠标垂直移动累加
     float minCameraAngle=-60f;
     float maxCameraAngle=60f;
-    
+    public CharacterController characterController;
 
     void Start()
     {
@@ -23,7 +23,7 @@ public class BasicMovement : MonoBehaviour
         Cursor.visible = false;
 
         animator = GetComponent<Animator>();
-        
+        characterController=GetComponent<CharacterController>();
     }
 
     void Update()
@@ -39,6 +39,7 @@ public class BasicMovement : MonoBehaviour
         bool isRunning=false;
         float verticalInput = Input.GetAxis("Vertical");
         float horizontalInput = Input.GetAxis("Horizontal");
+        Vector3 move = (transform.right * horizontalInput + transform.forward * verticalInput).normalized;   
         if (verticalInput > 0.01)
         {
             isRunning = Input.GetKey(KeyCode.LeftShift);
@@ -61,7 +62,8 @@ public class BasicMovement : MonoBehaviour
         }
 
         animator.SetFloat("Speed", currentSpeed);//设置融合树Speed
-        transform.Translate(new Vector3(horizontalInput * targetSpeed * Time.deltaTime, 0, verticalInput * targetSpeed * Time.deltaTime));
+        //transform.Translate(new Vector3(horizontalInput * targetSpeed * Time.deltaTime, 0, verticalInput * targetSpeed * Time.deltaTime));
+        characterController.Move(move*currentSpeed*Time.deltaTime);
 
     }
     void roleCamera()
