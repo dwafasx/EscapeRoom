@@ -6,12 +6,12 @@ public class BasicMovement : MonoBehaviour
     public Animator animator;
     public CharacterController characterController;
     [Header("移动设置")]
-    public float walkSpeed = 2.0f;//,既是融合树Speed行走时数值，又是角色行走速度
-    public float runSpeed = 5.0f;//同上
+    public float walkSpeed;//,既是融合树Speed行走时数值，又是角色行走速度   2f
+    public float runSpeed;//同上   5f
     public float acceleration; // 融合树Speed变量改变时的加速度
     public float deceleration; // 融合树Speed变量改变时的减速度
     private float currentSpeed = 0f;
-    float herizontalMouseSum=0;    //鼠标水平移动累加
+    float horizontalMouseSum=0;    //鼠标水平移动累加
     float verticalMouseSum = 0;//鼠标垂直移动累加
     float minCameraAngle=-60f;//摄像机最小角度
     float maxCameraAngle=60f;//摄像机最大角度
@@ -46,7 +46,7 @@ public class BasicMovement : MonoBehaviour
             Jump();
         }
         Debug.Log(velocity.x+"  "+ velocity.y + "  "+velocity.z);
-        characterController.Move(velocity);//角色跳跃
+        characterController.Move(velocity*Time.deltaTime);//角色跳跃
         Move();
         RoleCamera();
     }
@@ -70,7 +70,7 @@ public class BasicMovement : MonoBehaviour
         isGrounded=Physics.CheckSphere(groundCheck.position,checkRadius,groundMask);
         if (isGrounded && velocity.y < 0)
         {
-            velocity.y = 0;//接触地面后重力归零
+            velocity.y = -2;//小的向下的力确保紧贴地面
         }
     }
 
@@ -113,9 +113,9 @@ public class BasicMovement : MonoBehaviour
     {
         float horizontal = Input.GetAxis("Mouse X");
         float vertical = Input.GetAxis("Mouse Y");
-        herizontalMouseSum += horizontal;//鼠标水平移动累加
+        horizontalMouseSum += horizontal;//鼠标水平移动累加
         verticalMouseSum += vertical; //鼠标垂直移动累加
-        transform.localRotation=Quaternion.Euler(Vector3.up*herizontalMouseSum);//角色水平旋转
+        transform.localRotation=Quaternion.Euler(Vector3.up* horizontalMouseSum);//角色水平旋转
         //限制相机角度
         verticalMouseSum = Mathf.Clamp(verticalMouseSum, minCameraAngle, maxCameraAngle);
         //相机旋转
