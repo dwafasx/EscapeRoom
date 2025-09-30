@@ -45,8 +45,8 @@ public class BasicMovement : MonoBehaviour
         {
             Jump();
         }
-            Debug.Log(velocity.x+"  "+ velocity.y + "  "+velocity.z);
-        characterController.Move(velocity*0.01f);//角色跳跃
+        Debug.Log(velocity.x+"  "+ velocity.y + "  "+velocity.z);
+        characterController.Move(velocity);//角色跳跃
         Move();
         RoleCamera();
     }
@@ -55,6 +55,8 @@ public class BasicMovement : MonoBehaviour
     {
         velocity.y =  Mathf.Sqrt(2 * gravity * jumpForce);
     }
+
+    //使用重力
     private void ApplyGravity()
     {
         if (!isGrounded){
@@ -62,16 +64,18 @@ public class BasicMovement : MonoBehaviour
         }
     }
 
+    //地面检测
     private void GroundCheck()
     {
-        //isGrounded = characterController.isGrounded;
         isGrounded=Physics.CheckSphere(groundCheck.position,checkRadius,groundMask);
         if (isGrounded && velocity.y < 0)
         {
-            velocity.y = 0;
+            velocity.y = 0;//接触地面后重力归零
         }
     }
 
+
+    //角色移动脚本
     void Move()
     {
         bool isRunning=false;
@@ -80,11 +84,11 @@ public class BasicMovement : MonoBehaviour
         Vector3 move = (transform.right * horizontalInput + transform.forward * verticalInput).normalized;   
         if (verticalInput > 0.01)
         {
-            isRunning = Input.GetKey(KeyCode.LeftShift);
+            isRunning = Input.GetKey(KeyCode.LeftShift);//当按下w和leftShift时设置奔跑状态
         }
         
-        float targetSpeed = 0f;//anim组件中融合树Speed目标数值
-        if (Mathf.Abs(verticalInput) > 0.01f || Mathf.Abs(horizontalInput) > 0.01f) // 降低阈值
+        float targetSpeed = 0f;//anim组件中融合树Speed数值
+        if (Mathf.Abs(verticalInput) > 0.01f || Mathf.Abs(horizontalInput) > 0.01f) // 当按下方向键时设置速度
         {
             targetSpeed = isRunning ? runSpeed : walkSpeed;
         }
@@ -100,10 +104,11 @@ public class BasicMovement : MonoBehaviour
         }
 
         animator.SetFloat("Speed", currentSpeed);//设置融合树Speed
-        //transform.Translate(new Vector3(horizontalInput * targetSpeed * Time.deltaTime, 0, verticalInput * targetSpeed * Time.deltaTime));
         characterController.Move(move*currentSpeed*Time.deltaTime);
 
     }
+
+    //设置角色相机上下旋转
     void RoleCamera()
     {
         float horizontal = Input.GetAxis("Mouse X");
