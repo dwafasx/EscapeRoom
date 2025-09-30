@@ -3,8 +3,6 @@ using UnityEngine;
 public class BasicMovement : MonoBehaviour
 {
     private Animator animator;
-    private int speedHash;
-
     public float walkSpeed = 2.0f;//,既是融合树Speed行走时数值，又是角色行走速度
     public float runSpeed = 5.0f;//同上
 
@@ -25,7 +23,6 @@ public class BasicMovement : MonoBehaviour
         Cursor.visible = false;
 
         animator = GetComponent<Animator>();
-        speedHash = Animator.StringToHash("Speed");
         
     }
 
@@ -63,7 +60,7 @@ public class BasicMovement : MonoBehaviour
             currentSpeed = Mathf.Max(targetSpeed, currentSpeed - deceleration * Time.deltaTime);
         }
 
-        animator.SetFloat(speedHash, currentSpeed);//设置融合树Speed
+        animator.SetFloat("Speed", currentSpeed);//设置融合树Speed
         transform.Translate(new Vector3(horizontalInput * targetSpeed * Time.deltaTime, 0, verticalInput * targetSpeed * Time.deltaTime));
 
     }
@@ -78,6 +75,5 @@ public class BasicMovement : MonoBehaviour
         verticalMouseSum = Mathf.Clamp(verticalMouseSum, minCameraAngle, maxCameraAngle);
         //相机旋转
         Camera.main.transform.localRotation=Quaternion.Euler(-verticalMouseSum,0,0);
-        Debug.Log(verticalMouseSum);   
     }
 }
