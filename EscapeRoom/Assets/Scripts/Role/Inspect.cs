@@ -71,12 +71,7 @@ public class Inspect : MonoBehaviour
     }
     void HighlightObject(GameObject currentobj)
     {
-        //Renderer renderer  = currentobj.GetComponent<Renderer>();
-        //// 保存原始强度值
-        //float originalIntensity = renderer.material.GetFloat(0);
-        //// 设置高亮
-        //renderer.material.SetColor(0, Color.yellow);
-        //renderer.material.SetFloat(0, 1.0f);
+        
 
     }
 }
