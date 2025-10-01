@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -10,13 +11,15 @@ using static UnityEngine.GraphicsBuffer;
 public class Inspect : MonoBehaviour
 {
     public GameObject currentObject;//当前物体，即射线检测到的tag为Inspectable的物体
-    [Header("物体名称显示面板")]
+    [Header("物体显示面板")]
     public Canvas canvas;
     public Image ObjectPanel;//显示物体信息的面板ObjectPanel
     public TextMeshProUGUI objectName;//显示物体名称objectName
     public Image KeyIcon;//显示物体是否为钥匙
     [Header("检测距离")]
     public float maxDistance;
+    [Header("检视位置")]
+    public Transform InspectPosition;
     // Start is called before the first frame update
     private void Awake()
     {
@@ -59,6 +62,7 @@ public class Inspect : MonoBehaviour
                 {
                     KeyIcon.enabled = false;
                 }
+                InspectObject();
             }
             else
             {
@@ -68,6 +72,16 @@ public class Inspect : MonoBehaviour
         else
         {
             ClearHighlight();// 射线未检测到物体时取消高亮
+        }
+    }
+
+    private void InspectObject()
+    {
+        RoleController rolecontroller = GetComponent<RoleController>();
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            rolecontroller.enabled = rolecontroller.enabled ? false : true;
+            currentObject.transform.position = InspectPosition.position;
         }
     }
 

@@ -18,11 +18,12 @@ public class RoleController : MonoBehaviour
     Vector3 move=Vector3.zero;
     [Header("跳跃设置")]
     public Transform groundCheck;//地面检测的空物体的位置
-    public float checkRadius =1.3f;//检测半径
+    public float checkRadius;//检测半径 0.41f
     public bool isGrounded=false;
-    public LayerMask groundMask;
-    public float gravity;
-    public float jumpForce;
+    public LayerMask groundMask;//地面检测哪些层
+    public float gravity;//重力
+    public float jumpForce;//跳跃高度
+    float targetSpeed=0;
     void Start()
     {
         //锁定鼠标到屏幕中心并隐藏
@@ -87,7 +88,7 @@ public class RoleController : MonoBehaviour
             isRunning = Input.GetKey(KeyCode.LeftShift);//当按下w和leftShift时设置奔跑状态
         }
         
-        float targetSpeed = 0f;//anim组件中融合树Speed数值
+        targetSpeed = 0f;//anim组件中融合树Speed数值
         if (move.x !=0 || move.z !=0) // 当按下方向键时设置速度
         {
             targetSpeed = isRunning ? runSpeed : walkSpeed;
@@ -122,4 +123,5 @@ public class RoleController : MonoBehaviour
         //相机旋转
         Camera.main.transform.localRotation=Quaternion.Euler(-verticalMouseSum,0,0);
     }
+
 }
