@@ -78,6 +78,7 @@ public class Inspect : MonoBehaviour
     private void InspectObject()
     {
         RoleController rolecontroller = GetComponent<RoleController>();
+        rolecontroller.animator.SetFloat("Speed",0);
         if (Input.GetKeyDown(KeyCode.E))
         {
             rolecontroller.enabled = rolecontroller.enabled ? false : true;
