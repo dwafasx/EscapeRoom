@@ -32,6 +32,8 @@ public class Inspect : MonoBehaviour
         HandleRaycast();
     }
 
+
+
     public void  HandleRaycast()
     {
         ObjectPanel.gameObject.SetActive(false);//隐藏物体面板
@@ -47,6 +49,14 @@ public class Inspect : MonoBehaviour
                 currentObject = hit.collider.gameObject;//设置当前物体
                 ObjectPanel.gameObject.SetActive(true);
                 objectName.text = currentObject.GetComponent<InteractiveObject>().Name;//获取当前物体InteractiveObject组件中的Name变量并显示
+                if (currentObject.GetComponent<InteractiveObject>().isKey)
+                {
+                    KeyIcon.enabled = true;
+                }
+                else
+                {
+                    KeyIcon.enabled = false;
+                }
             }
         }
     }
