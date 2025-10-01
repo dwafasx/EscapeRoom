@@ -88,7 +88,7 @@ public class BasicMovement : MonoBehaviour
         }
         
         float targetSpeed = 0f;//anim组件中融合树Speed数值
-        if (move !=Vector3.zero) // 当按下方向键时设置速度
+        if (move.x !=0 || move.z !=0) // 当按下方向键时设置速度
         {
             targetSpeed = isRunning ? runSpeed : walkSpeed;
         }
