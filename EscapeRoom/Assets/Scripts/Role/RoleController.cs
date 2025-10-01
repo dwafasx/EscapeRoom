@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class BasicMovement : MonoBehaviour
+public class RoleController : MonoBehaviour
 {
     public Animator animator;
     public CharacterController characterController;
