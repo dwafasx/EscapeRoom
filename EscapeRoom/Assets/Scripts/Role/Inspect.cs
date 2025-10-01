@@ -38,7 +38,6 @@ public class Inspect : MonoBehaviour
     public void  HandleRaycast()
     {
         ObjectPanel.gameObject.SetActive(false);//隐藏物体面板
-        currentObject = null;//初始化当前物体
         //射线检测
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
@@ -48,12 +47,10 @@ public class Inspect : MonoBehaviour
             if (hit.collider.CompareTag("Inspectable"))
             {
                 currentObject = hit.collider.gameObject;//设置当前物体
-
-                ClearHighlight();// 取消之前的高亮
-                HighlightObject(currentObject);  // 高亮新物体
-
-                ObjectPanel.gameObject.SetActive(true);
+                HighlightObject(currentObject);  // 高亮显示物体
+                ObjectPanel.gameObject.SetActive(true);//显示物体信息
                 objectName.text = currentObject.GetComponent<InteractiveObject>().Name;//获取当前物体InteractiveObject组件中的Name变量并显示
+                //如果物体是钥匙则显示钥匙图标
                 if (currentObject.GetComponent<InteractiveObject>().isKey)
                 {
                     KeyIcon.enabled = true;
@@ -63,15 +60,40 @@ public class Inspect : MonoBehaviour
                     KeyIcon.enabled = false;
                 }
             }
+            else
+            {
+                ClearHighlight();// 射线检测到物体但tag不等于Inspectable时取消高亮
+            }
+        }
+        else
+        {
+            ClearHighlight();// 射线未检测到物体时取消高亮
         }
     }
+
+    //取消高亮
     void ClearHighlight()
     {
-
+        if(currentObject != null)
+        {
+            Outline outline= currentObject.GetComponent<Outline>();
+            if (outline)
+            {
+                outline.enabled = false;
+            }
+        }
+        
     }
+
+    //使用AssetStore 中的QuickOutline实现物体轮廓高亮显示
     void HighlightObject(GameObject currentobj)
     {
-        
-
+        Outline outline= currentobj.GetComponent<Outline>();
+        if (outline == null)
+        {
+            outline=currentObject.AddComponent<Outline>();
+        }
+        outline.enabled = true;
+        outline.OutlineWidth = 10;
     }
 }
