@@ -4,6 +4,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.GraphicsBuffer;
 
 //角色交互
 public class Inspect : MonoBehaviour
@@ -47,6 +48,10 @@ public class Inspect : MonoBehaviour
             if (hit.collider.CompareTag("Inspectable"))
             {
                 currentObject = hit.collider.gameObject;//设置当前物体
+
+                ClearHighlight();// 取消之前的高亮
+                HighlightObject(currentObject);  // 高亮新物体
+
                 ObjectPanel.gameObject.SetActive(true);
                 objectName.text = currentObject.GetComponent<InteractiveObject>().Name;//获取当前物体InteractiveObject组件中的Name变量并显示
                 if (currentObject.GetComponent<InteractiveObject>().isKey)
@@ -59,5 +64,19 @@ public class Inspect : MonoBehaviour
                 }
             }
         }
+    }
+    void ClearHighlight()
+    {
+
+    }
+    void HighlightObject(GameObject currentobj)
+    {
+        //Renderer renderer  = currentobj.GetComponent<Renderer>();
+        //// 保存原始强度值
+        //float originalIntensity = renderer.material.GetFloat(0);
+        //// 设置高亮
+        //renderer.material.SetColor(0, Color.yellow);
+        //renderer.material.SetFloat(0, 1.0f);
+
     }
 }
