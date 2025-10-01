@@ -15,6 +15,7 @@ public class BasicMovement : MonoBehaviour
     float verticalMouseSum = 0;//鼠标垂直移动累加
     float minCameraAngle=-60f;//摄像机最小角度
     float maxCameraAngle=60f;//摄像机最大角度
+    Vector3 move=Vector3.zero;
     [Header("跳跃设置")]
     public Transform groundCheck;//地面检测的空物体的位置
     public float checkRadius =1.3f;//检测半径
@@ -22,7 +23,6 @@ public class BasicMovement : MonoBehaviour
     public LayerMask groundMask;
     public float gravity;
     public float jumpForce;
-    private Vector3 velocity=Vector3.zero;
     void Start()
     {
         //锁定鼠标到屏幕中心并隐藏
@@ -44,23 +44,23 @@ public class BasicMovement : MonoBehaviour
         if(Input.GetButtonDown("Jump") && isGrounded)
         {
             Jump();
+            Debug.Log("Jump");
         }
-        Debug.Log(velocity.x+"  "+ velocity.y + "  "+velocity.z);
-        characterController.Move(velocity*Time.deltaTime);//角色跳跃
+        Debug.Log(move.x+"  "+ move.y + "  "+ move.z);
         Move();
         RoleCamera();
     }
 
     private void Jump()
     {
-        velocity.y =  Mathf.Sqrt(2 * gravity * jumpForce);
+        move.y =  Mathf.Sqrt(2 * gravity * jumpForce);
     }
 
     //使用重力
     private void ApplyGravity()
     {
         if (!isGrounded){
-            velocity.y -= gravity * Time.deltaTime;
+            move.y -= gravity * Time.deltaTime;
         }
     }
 
@@ -68,9 +68,9 @@ public class BasicMovement : MonoBehaviour
     private void GroundCheck()
     {
         isGrounded=Physics.CheckSphere(groundCheck.position,checkRadius,groundMask);
-        if (isGrounded && velocity.y < 0)
+        if (isGrounded && move.y < 0)
         {
-            velocity.y = -2;//小的向下的力确保紧贴地面
+            move.y = -2;//小的向下的力确保紧贴地面
         }
     }
 
@@ -81,14 +81,14 @@ public class BasicMovement : MonoBehaviour
         bool isRunning=false;
         float verticalInput = Input.GetAxis("Vertical");
         float horizontalInput = Input.GetAxis("Horizontal");
-        Vector3 move = (transform.right * horizontalInput + transform.forward * verticalInput).normalized;   
+        move = (transform.right * horizontalInput +transform.up*move.y+ transform.forward * verticalInput);   
         if (verticalInput > 0.01)
         {
             isRunning = Input.GetKey(KeyCode.LeftShift);//当按下w和leftShift时设置奔跑状态
         }
         
         float targetSpeed = 0f;//anim组件中融合树Speed数值
-        if (Mathf.Abs(verticalInput) > 0.01f || Mathf.Abs(horizontalInput) > 0.01f) // 当按下方向键时设置速度
+        if (move !=Vector3.zero) // 当按下方向键时设置速度
         {
             targetSpeed = isRunning ? runSpeed : walkSpeed;
         }
@@ -104,7 +104,8 @@ public class BasicMovement : MonoBehaviour
         }
 
         animator.SetFloat("Speed", currentSpeed);//设置融合树Speed
-        characterController.Move(move*currentSpeed*Time.deltaTime);
+        characterController.Move(new Vector3(move.x ,0, move.z)* currentSpeed * Time.deltaTime);//水平移动
+        characterController.Move(new Vector3(0 , move.y, 0) * jumpForce * Time.deltaTime);//跳跃
 
     }
 
