@@ -54,6 +54,7 @@ public class BasicMovement : MonoBehaviour
     private void Jump()
     {
         move.y =  Mathf.Sqrt(2 * gravity * jumpForce);
+        animator.SetTrigger("isJump");
     }
 
     //使用重力
