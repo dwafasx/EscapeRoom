@@ -22,6 +22,8 @@ public class Inspect : MonoBehaviour
     public Transform InspectPosition;
     [Header("是否正在检视")]
     public bool isInspect=false;
+    Vector3 startPosition;//物体检视前的起始位置，当退出检视时将物品放回原位
+    Quaternion startRotation;//物体检视前的起始角度，当退出检视时将物品旋转回原位
     // Start is called before the first frame update
     private void Awake()
     {
@@ -82,14 +84,14 @@ public class Inspect : MonoBehaviour
     private void InspectObject()
     {
         RoleController rolecontroller = GetComponent<RoleController>();
-        Vector3 startPosition=currentObject.transform.position; 
-        if (!isInspect)//如果现在没有检视，则开启检视
+        if (!isInspect)//如果现在没有检视，则在按下E键后开始检视
         {
             //将角色控制脚本禁用，并设置融合树Speed为0，防止在检视时角色仍在播放其他动画
+            //将物体平滑移动到指定位置检视
             if (Input.GetKeyDown(KeyCode.E))
             {
                 isInspect = true;
-                StartCoroutine(startInspect(rolecontroller, 1));
+                StartCoroutine(startInspect(rolecontroller, 0.5f));//开启协程，传入角色控制器和过渡时间
             }
         }
         else
@@ -107,16 +109,20 @@ public class Inspect : MonoBehaviour
 
     IEnumerator startInspect(RoleController rolecontroller, float time)
     {
-        //过渡时间
-        float elapsedTime = time;
+        startPosition=currentObject.transform.position;//设置起始位置
+        startRotation=currentObject.transform.rotation;//设置起始位置
+        float elapsedTime = time;        //过渡时间
         rolecontroller.enabled = false;//禁用角色移动
-        while ((time-=Time.deltaTime)>0)//平滑调整数值
+        while (time>0)//平滑调整数值
         {
-            rolecontroller.animator.SetFloat("Speed", rolecontroller.currentSpeed*time/ elapsedTime);//调整角色动画
-            //currentObject.transform.position = InspectPosition.position;
-            currentObject.transform.position = Vector3.Lerp(currentObject.transform.position,InspectPosition.position, time / elapsedTime);
+            rolecontroller.animator.SetFloat("Speed", rolecontroller.currentSpeed*time/ elapsedTime);//平滑调整角色动画
+            currentObject.transform.position = Vector3.Lerp(startPosition,InspectPosition.position, (elapsedTime- time) / elapsedTime);//平滑调整物体到检视位置
+            currentObject.transform.rotation = Quaternion.Lerp(startRotation,Camera.main.transform.rotation, (elapsedTime - time) / elapsedTime);//将物体平滑旋转至相机正前方      物体背对摄像头
+
+            time -= Time.deltaTime;
             yield return null;
         }
+
     }
 
     //取消高亮
