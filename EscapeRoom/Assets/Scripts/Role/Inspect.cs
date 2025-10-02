@@ -20,6 +20,8 @@ public class Inspect : MonoBehaviour
     public float maxDistance;
     [Header("检视位置")]
     public Transform InspectPosition;
+    [Header("是否正在检视")]
+    public bool isInspect=false;
     // Start is called before the first frame update
     private void Awake()
     {
@@ -75,14 +77,45 @@ public class Inspect : MonoBehaviour
         }
     }
 
+
+    //检视物品
     private void InspectObject()
     {
         RoleController rolecontroller = GetComponent<RoleController>();
-        rolecontroller.animator.SetFloat("Speed",0);
-        if (Input.GetKeyDown(KeyCode.E))
+        Vector3 startPosition=currentObject.transform.position; 
+        if (!isInspect)//如果现在没有检视，则开启检视
         {
-            rolecontroller.enabled = rolecontroller.enabled ? false : true;
-            currentObject.transform.position = InspectPosition.position;
+            //将角色控制脚本禁用，并设置融合树Speed为0，防止在检视时角色仍在播放其他动画
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                isInspect = true;
+                StartCoroutine(startInspect(rolecontroller, 1));
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                isInspect = false;
+                rolecontroller.enabled=true;
+                //StopCoroutine(startInspect(rolecontroller, 1));
+                StopAllCoroutines();
+            }
+        }
+        
+    }
+
+    IEnumerator startInspect(RoleController rolecontroller, float time)
+    {
+        //过渡时间
+        float elapsedTime = time;
+        rolecontroller.enabled = false;//禁用角色移动
+        while ((time-=Time.deltaTime)>0)//平滑调整数值
+        {
+            rolecontroller.animator.SetFloat("Speed", rolecontroller.currentSpeed*time/ elapsedTime);//调整角色动画
+            //currentObject.transform.position = InspectPosition.position;
+            currentObject.transform.position = Vector3.Lerp(currentObject.transform.position,InspectPosition.position, time / elapsedTime);
+            yield return null;
         }
     }
 

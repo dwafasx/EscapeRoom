@@ -10,7 +10,7 @@ public class RoleController : MonoBehaviour
     public float runSpeed;//同上   5f
     public float acceleration; // 融合树Speed变量改变时的加速度
     public float deceleration; // 融合树Speed变量改变时的减速度
-    private float currentSpeed = 0f;
+    public float currentSpeed = 0f;
     float horizontalMouseSum=0;    //鼠标水平移动累加
     float verticalMouseSum = 0;//鼠标垂直移动累加
     float minCameraAngle=-90f;//摄像机最小角度
