@@ -23,7 +23,8 @@ public class Inspect : MonoBehaviour
     public Transform InspectPosition;
     [Header("是否正在检视")]
     public bool isInspect=false;
-
+    [Header("过渡时间")]
+    public float duration;        //过渡时间
     [SerializeField] private float scaleFactor; // 检视缩放系数 1.5f
     Vector3 startPosition;//物体检视前的起始位置，当退出检视时将物品放回原位
     Quaternion startRotation;//物体检视前的起始角度，当退出检视时将物品旋转回原位
@@ -97,20 +98,33 @@ public class Inspect : MonoBehaviour
             //将物体平滑移动到指定位置检视
             if (Input.GetKeyDown(KeyCode.E))
             {
-                startInspectCoroutine = StartCoroutine(startInspect(rolecontroller, 0.5f));//开启检视协程，传入角色控制器和过渡时间
+                startInspectCoroutine = StartCoroutine(startInspect(rolecontroller, duration));//开启检视协程，传入角色控制器和过渡时间
             }
         } 
     }
 
     public void stoptInspect()
     {
-        Debug.Log("停止检视协程");
+        Debug.Log("停止检视");
         rolecontroller.enabled = true;
         if (startInspectCoroutine != null)
         {
             StopCoroutine(startInspectCoroutine);
         }
+        //结束检视时还原物体(位置，旋转，缩放)
+        currentObject.transform.DOMove(startPosition, duration, false);
+        currentObject.transform.DORotate(startRotation.eulerAngles,duration,RotateMode.Fast);
+        currentObject.transform.DOScale(startScale, duration);
         isInspect = false;
+        StartCoroutine(stopScript(duration));//停止本脚本，动画过渡时间结束后重新开启,防止多次按下E键后物体原本大小发生改变
+    }
+
+    //停止本脚本，经过指定时间后重新启用  //停止脚本不会停止协程
+    IEnumerator stopScript( float time)
+    {
+        GetComponent<Inspect>().enabled = false; 
+        yield return new WaitForSeconds(time);
+        GetComponent<Inspect>().enabled = true;
     }
 
     IEnumerator startInspect(RoleController rolecontroller, float time)
@@ -122,17 +136,16 @@ public class Inspect : MonoBehaviour
         startPosition =currentObject.transform.position;//设置起始位置,在停止检视后放回原位
         startRotation=currentObject.transform.rotation;//设置起始角度
         startScale=currentObject.transform.localScale;//设置起始缩放
-        float elapsedTime = time;        //过渡时间
         rolecontroller.enabled = false;//禁用角色移动
         Vector3 targetScale = CalculateOptimalScale(currentObject);//计算缩放
         //currentObject.transform.DOScale(targetScale, elapsedTime);//平滑缩放到合适的大小,这里使用DOTween插件时缩放不同步(较快)，因此在下方循环中缩放
         while (time>0)//平滑调整数值
         {
-            rolecontroller.animator.SetFloat("Speed", rolecontroller.currentSpeed*time/ elapsedTime);//平滑调整角色动画
-            currentObject.transform.position = Vector3.Lerp(startPosition,InspectPosition.position, (elapsedTime- time) / elapsedTime);//平滑调整物体到检视位置
-            currentObject.transform.rotation = Quaternion.Lerp(startRotation,Camera.main.transform.rotation, (elapsedTime - time) / elapsedTime);//将物体平滑旋转至相机正前方      物体背对摄像头
+            rolecontroller.animator.SetFloat("Speed", rolecontroller.currentSpeed*time/ duration);//平滑调整角色动画
+            currentObject.transform.position = Vector3.Lerp(startPosition,InspectPosition.position, (duration - time) / duration);//平滑调整物体到检视位置
+            currentObject.transform.rotation = Quaternion.Lerp(startRotation,Camera.main.transform.rotation, (duration - time) / duration);//将物体平滑旋转至相机正前方      物体背对摄像头
             //currentObject.transform.DOLocalRotate(Camera.main.transform.rotation.eulerAngles,elapsedTime,RotateMode.Fast );//将物体平滑旋转至相机正前方      物体背对摄像头
-            currentObject.transform.localScale = Vector3.Lerp(startScale, targetScale, (elapsedTime - time) / elapsedTime);//平滑缩放
+            currentObject.transform.localScale = Vector3.Lerp(startScale, targetScale, (duration - time) / duration);//平滑缩放
 
             time -= Time.deltaTime;
             yield return null;

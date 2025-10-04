@@ -8027,6 +8027,7 @@ MonoBehaviour:
   maxDistance: 50
   InspectPosition: {fileID: 1697952425}
   isInspect: 0
+  duration: 0.5
   scaleFactor: 1.5
 --- !u!1 &1340693634
 GameObject:
