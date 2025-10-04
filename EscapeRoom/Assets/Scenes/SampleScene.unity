@@ -407,7 +407,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: "\u5706"
   isKey: 1
-  Viewable: 0
+  Viewable: 1
 --- !u!1 &619946092
 GameObject:
   m_ObjectHideFlags: 0

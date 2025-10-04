@@ -24,6 +24,7 @@ public class Inspect : MonoBehaviour
     public bool isInspect=false;
     Vector3 startPosition;//物体检视前的起始位置，当退出检视时将物品放回原位
     Quaternion startRotation;//物体检视前的起始角度，当退出检视时将物品旋转回原位
+    Vector3 startScale;//物体检视前的起始缩放大小，当退出检视时将物品旋转回原位
     Coroutine startInspectCoroutine = null;//开始检视协程后返回Coroutine
     RoleController rolecontroller;//角色控制器
     // Start is called before the first frame update
@@ -40,16 +41,11 @@ public class Inspect : MonoBehaviour
     void Update()
     {
         HandleRaycast();
-        if (isInspect)
+        if (isInspect && Input.GetKeyDown(KeyCode.E))
         {
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                stoptInspect();
-            }
+              stoptInspect();
         }
     }
-
-
 
     public void  HandleRaycast()
     {
@@ -92,7 +88,7 @@ public class Inspect : MonoBehaviour
     //检视物品
     private void InspectObject()
     {
-        if (!isInspect)//如果现在没有检视，则在按下E键后开始检视
+        if (!isInspect && currentObject.GetComponent<InteractiveObject>().Viewable)//如果现在没有检视,且物品为可检视物体，则在按下E键后开始检视
         {
             //将角色控制脚本禁用，并设置融合树Speed为0，防止在检视时角色仍在播放其他动画
             //将物体平滑移动到指定位置检视
@@ -116,11 +112,13 @@ public class Inspect : MonoBehaviour
 
     IEnumerator startInspect(RoleController rolecontroller, float time)
     {
+        if (isInspect) yield break;
         Debug.Log("在下一帧开始检视");
         yield return null; //这里等待一帧再执行，防止与stopInspect方法按键冲突;
         isInspect = true;
         startPosition =currentObject.transform.position;//设置起始位置
-        startRotation=currentObject.transform.rotation;//设置起始位置
+        startRotation=currentObject.transform.rotation;//设置起始角度
+        startScale=currentObject.transform.localScale;//设置起始缩放
         float elapsedTime = time;        //过渡时间
         rolecontroller.enabled = false;//禁用角色移动
         while (time>0)//平滑调整数值
