@@ -25,6 +25,7 @@ public class Inspect : MonoBehaviour
     Vector3 startPosition;//物体检视前的起始位置，当退出检视时将物品放回原位
     Quaternion startRotation;//物体检视前的起始角度，当退出检视时将物品旋转回原位
     Coroutine startInspectCoroutine = null;//开始检视协程后返回Coroutine
+    RoleController rolecontroller;//角色控制器
     // Start is called before the first frame update
     private void Awake()
     {
@@ -32,13 +33,20 @@ public class Inspect : MonoBehaviour
     }
     void Start()
     {
-
+        rolecontroller = GetComponent<RoleController>();
     }
 
     // Update is called once per frame
     void Update()
     {
         HandleRaycast();
+        if (isInspect)
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                stoptInspect();
+            }
+        }
     }
 
 
@@ -84,36 +92,34 @@ public class Inspect : MonoBehaviour
     //检视物品
     private void InspectObject()
     {
-        RoleController rolecontroller = GetComponent<RoleController>();
         if (!isInspect)//如果现在没有检视，则在按下E键后开始检视
         {
             //将角色控制脚本禁用，并设置融合树Speed为0，防止在检视时角色仍在播放其他动画
             //将物体平滑移动到指定位置检视
             if (Input.GetKeyDown(KeyCode.E))
             {
-                isInspect = true;
                 startInspectCoroutine = StartCoroutine(startInspect(rolecontroller, 0.5f));//开启检视协程，传入角色控制器和过渡时间
             }
-        }
-        else
+        } 
+    }
+
+    public void stoptInspect()
+    {
+        Debug.Log("停止检视协程");
+        rolecontroller.enabled = true;
+        if (startInspectCoroutine != null)
         {
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                isInspect = false;
-                rolecontroller.enabled=true;
-                //StopCoroutine(startInspect(rolecontroller, 1));
-                if(startInspectCoroutine != null)
-                {
-                    StopCoroutine(startInspectCoroutine);
-                }
-            }
+            StopCoroutine(startInspectCoroutine);
         }
-        
+        isInspect = false;
     }
 
     IEnumerator startInspect(RoleController rolecontroller, float time)
     {
-        startPosition=currentObject.transform.position;//设置起始位置
+        Debug.Log("在下一帧开始检视");
+        yield return null; //这里等待一帧再执行，防止与stopInspect方法按键冲突;
+        isInspect = true;
+        startPosition =currentObject.transform.position;//设置起始位置
         startRotation=currentObject.transform.rotation;//设置起始位置
         float elapsedTime = time;        //过渡时间
         rolecontroller.enabled = false;//禁用角色移动
@@ -122,7 +128,6 @@ public class Inspect : MonoBehaviour
             rolecontroller.animator.SetFloat("Speed", rolecontroller.currentSpeed*time/ elapsedTime);//平滑调整角色动画
             currentObject.transform.position = Vector3.Lerp(startPosition,InspectPosition.position, (elapsedTime- time) / elapsedTime);//平滑调整物体到检视位置
             currentObject.transform.rotation = Quaternion.Lerp(startRotation,Camera.main.transform.rotation, (elapsedTime - time) / elapsedTime);//将物体平滑旋转至相机正前方      物体背对摄像头
-
             time -= Time.deltaTime;
             yield return null;
         }
