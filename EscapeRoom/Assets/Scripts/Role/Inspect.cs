@@ -13,7 +13,7 @@ public class Inspect : MonoBehaviour
     public GameObject currentObject;//当前物体，即射线检测到的tag为Inspectable的物体
     [Header("物体显示面板")]
     public Canvas canvas;
-    public Image ObjectPanel;//显示物体信息的面板ObjectPanel
+    public Image objectPanel;//显示物体信息的面板ObjectPanel
     public TextMeshProUGUI objectName;//显示物体名称objectName
     public Image KeyIcon;//显示物体是否为钥匙
     [Header("检测距离")]
@@ -24,6 +24,7 @@ public class Inspect : MonoBehaviour
     public bool isInspect=false;
     Vector3 startPosition;//物体检视前的起始位置，当退出检视时将物品放回原位
     Quaternion startRotation;//物体检视前的起始角度，当退出检视时将物品旋转回原位
+    Coroutine startInspectCoroutine = null;//开始检视协程后返回Coroutine
     // Start is called before the first frame update
     private void Awake()
     {
@@ -44,7 +45,7 @@ public class Inspect : MonoBehaviour
 
     public void  HandleRaycast()
     {
-        ObjectPanel.gameObject.SetActive(false);//隐藏物体面板
+        objectPanel.gameObject.SetActive(false);//隐藏物体面板
         //射线检测
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
@@ -55,7 +56,7 @@ public class Inspect : MonoBehaviour
             {
                 currentObject = hit.collider.gameObject;//设置当前物体
                 HighlightObject(currentObject);  // 高亮显示物体
-                ObjectPanel.gameObject.SetActive(true);//显示物体信息
+                objectPanel.gameObject.SetActive(true);//显示物体信息
                 objectName.text = currentObject.GetComponent<InteractiveObject>().Name;//获取当前物体InteractiveObject组件中的Name变量并显示
                 //如果物体是钥匙则显示钥匙图标
                 if (currentObject.GetComponent<InteractiveObject>().isKey)
@@ -91,7 +92,7 @@ public class Inspect : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.E))
             {
                 isInspect = true;
-                StartCoroutine(startInspect(rolecontroller, 0.5f));//开启协程，传入角色控制器和过渡时间
+                startInspectCoroutine = StartCoroutine(startInspect(rolecontroller, 0.5f));//开启检视协程，传入角色控制器和过渡时间
             }
         }
         else
@@ -101,7 +102,10 @@ public class Inspect : MonoBehaviour
                 isInspect = false;
                 rolecontroller.enabled=true;
                 //StopCoroutine(startInspect(rolecontroller, 1));
-                StopAllCoroutines();
+                if(startInspectCoroutine != null)
+                {
+                    StopCoroutine(startInspectCoroutine);
+                }
             }
         }
         
