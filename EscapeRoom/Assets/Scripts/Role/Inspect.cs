@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using static UnityEngine.GraphicsBuffer;
+using DG.Tweening;
 
 //角色交互
 public class Inspect : MonoBehaviour
@@ -22,10 +23,12 @@ public class Inspect : MonoBehaviour
     public Transform InspectPosition;
     [Header("是否正在检视")]
     public bool isInspect=false;
+
+    [SerializeField] private float scaleFactor; // 检视缩放系数 1.5f
     Vector3 startPosition;//物体检视前的起始位置，当退出检视时将物品放回原位
     Quaternion startRotation;//物体检视前的起始角度，当退出检视时将物品旋转回原位
     Vector3 startScale;//物体检视前的起始缩放大小，当退出检视时将物品旋转回原位
-    Coroutine startInspectCoroutine = null;//开始检视协程后返回Coroutine
+    Coroutine startInspectCoroutine = null;//开始检视协程后返回Coroutine,用来暂停协程
     RoleController rolecontroller;//角色控制器
     // Start is called before the first frame update
     private void Awake()
@@ -116,20 +119,58 @@ public class Inspect : MonoBehaviour
         Debug.Log("在下一帧开始检视");
         yield return null; //这里等待一帧再执行，防止与stopInspect方法按键冲突;
         isInspect = true;
-        startPosition =currentObject.transform.position;//设置起始位置
+        startPosition =currentObject.transform.position;//设置起始位置,在停止检视后放回原位
         startRotation=currentObject.transform.rotation;//设置起始角度
         startScale=currentObject.transform.localScale;//设置起始缩放
         float elapsedTime = time;        //过渡时间
         rolecontroller.enabled = false;//禁用角色移动
+        Vector3 targetScale = CalculateOptimalScale(currentObject);//计算缩放
+        //currentObject.transform.DOScale(targetScale, elapsedTime);//平滑缩放到合适的大小,这里使用DOTween插件时缩放不同步(较快)，因此在下方循环中缩放
         while (time>0)//平滑调整数值
         {
             rolecontroller.animator.SetFloat("Speed", rolecontroller.currentSpeed*time/ elapsedTime);//平滑调整角色动画
             currentObject.transform.position = Vector3.Lerp(startPosition,InspectPosition.position, (elapsedTime- time) / elapsedTime);//平滑调整物体到检视位置
             currentObject.transform.rotation = Quaternion.Lerp(startRotation,Camera.main.transform.rotation, (elapsedTime - time) / elapsedTime);//将物体平滑旋转至相机正前方      物体背对摄像头
+            //currentObject.transform.DOLocalRotate(Camera.main.transform.rotation.eulerAngles,elapsedTime,RotateMode.Fast );//将物体平滑旋转至相机正前方      物体背对摄像头
+            currentObject.transform.localScale = Vector3.Lerp(startScale, targetScale, (elapsedTime - time) / elapsedTime);//平滑缩放
+
             time -= Time.deltaTime;
             yield return null;
         }
 
+    }
+
+    //计算最优缩放比例
+    private Vector3 CalculateOptimalScale(GameObject targetObject)
+    {
+        // 获取物体及子物体的包围盒
+        Bounds bounds = GetObjectBounds(targetObject);
+        // 计算物体大小
+        float objectSize = bounds.size.magnitude;
+
+        // 根据摄像机视野计算合适的大小
+        float cameraDistance = (Camera.main.transform.position - InspectPosition.position).magnitude;// 检视距离
+        float cameraFOV = Camera.main.fieldOfView;//摄像机视野大小
+        float optimalSize = Mathf.Tan(cameraFOV * 0.5f * Mathf.Deg2Rad) * cameraDistance;
+
+        // 计算缩放比例
+        float scale = (optimalSize / objectSize) * scaleFactor;
+
+        return targetObject.transform.localScale * scale;
+    }
+
+    //获取物体及子物体的包围盒并合并
+    private Bounds GetObjectBounds(GameObject targetObject)
+    {
+        Renderer[] renderers = targetObject.GetComponentsInChildren<Renderer>();
+        if (renderers.Length == 0) return new Bounds(targetObject.transform.position, Vector3.one);//未获取到render组件则返回大小为1的包围盒
+
+        Bounds bounds = renderers[0].bounds;
+        foreach (Renderer renderer in renderers)
+        {
+            bounds.Encapsulate(renderer.bounds);//合并包围盒
+        }
+        return bounds;
     }
 
     //取消高亮
